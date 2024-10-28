@@ -5,7 +5,7 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-require_once('db_connection.php');
+require_once('db/db_connection.php');
 $user_id = $_SESSION['user_id'];
 // echo "THIS IS USER ID <h1> $user_id </h1>";
 $sql = "SELECT username, email FROM users WHERE id = '$user_id'";

@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once('db_connection.php');
+require_once('db/db_connection.php');
 
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
@@ -51,8 +51,8 @@ if ($postsResult && $postsResult->num_rows > 0) {
                         <h5><?php echo $post['title']; ?></h5>
                         <p><?php echo $post['content']; ?></p>
                         <div class="btn-group" role="group">
-                            <a href="add_post.php?edit=<?php echo $post['id']; ?>" class="btn btn-warning">Edit</a>
-                            <form method="post" action="add_post.php" class="d-inline">
+                            <a href="post.php?edit=<?php echo $post['id']; ?>" class="btn btn-warning">Edit</a>
+                            <form method="post" action="post.php" class="d-inline">
                                 <input type="hidden" name="delete_post" value="<?php echo $post['id']; ?>">
                                 <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this post?')">Delete</button>
                             </form>
@@ -64,7 +64,7 @@ if ($postsResult && $postsResult->num_rows > 0) {
             <p>You have no posts yet.</p>
         <?php endif; ?>
 
-        <p class="mt-3"><a href="add_post.php">Add New Post</a></p>
+        <p class="mt-3"><a href="post.php">Add New Post</a></p>
         <p><a href="dashboard.php">Back to Dashboard</a></p>
     </div>
 

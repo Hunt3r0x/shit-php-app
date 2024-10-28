@@ -1,5 +1,5 @@
 <?php
-require_once('db_connection.php');
+require_once('db/db_connection.php');
 
 $errors = [];
 
@@ -22,6 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             if ($connection->query($sql) === TRUE) {
                 echo "Registration successful!";
+                Header("Location: /login.php");
             } else {
                 $errors[] = "Error registering user. Please try again later.";
             }
