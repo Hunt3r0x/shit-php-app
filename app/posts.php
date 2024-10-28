@@ -18,7 +18,7 @@ if ($result && $result->num_rows > 0) {
     exit();
 }
 
-$postsSql = "SELECT id, title, content FROM posts WHERE user_id = '$user_id'";
+$postsSql = "SELECT id, title, content, created_at FROM posts WHERE user_id = '$user_id'";
 $postsResult = $connection->query($postsSql);
 
 $posts = [];
@@ -50,6 +50,7 @@ if ($postsResult && $postsResult->num_rows > 0) {
                     <li class="list-group-item">
                         <h5><?php echo $post['title']; ?></h5>
                         <p><?php echo $post['content']; ?></p>
+                        <pre><?php echo $post['created_at']; ?></pre>
                         <div class="btn-group" role="group">
                             <a href="post.php?edit=<?php echo $post['id']; ?>" class="btn btn-warning">Edit</a>
                             <form method="post" action="post.php" class="d-inline">

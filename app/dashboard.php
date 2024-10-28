@@ -67,6 +67,14 @@ if (!empty($searchTerm)) {
                 <li class="nav-item">
                     <a class="nav-link" href="posts.php">Posts</a>
                 </li>
+                <li>
+                    <?php
+                    if ($user['username'] === 'admin') {
+                        echo '<a class="nav-link" href="AdminPriv.php">Admin</a>';
+                    }
+                    ?>
+                </li>
+
             </ul>
         </div>
     </nav>
