@@ -2,14 +2,28 @@
 session_start();
 require_once('db/db_connection.php');
 
+// Secure session settings
+session_set_cookie_params([
+    'secure' => true,
+    'httponly' => true,
+    'samesite' => 'Strict',
+]);
+session_regenerate_id();
+
+// Redirect if the user is not authenticated
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit();
 }
 
 $user_id = $_SESSION['user_id'];
-$sql = "SELECT username, email FROM users WHERE id = '$user_id'";
-$result = $connection->query($sql);
+$errors = [];
+
+// Fetch user details
+$stmt = $connection->prepare("SELECT username, email FROM users WHERE id = ?");
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$result = $stmt->get_result();
 
 if ($result && $result->num_rows > 0) {
     $user = $result->fetch_assoc();
@@ -17,56 +31,71 @@ if ($result && $result->num_rows > 0) {
     header("Location: login.php");
     exit();
 }
-
-$errors = [];
+$stmt->close();
 
 // Edit Post
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_post'])) {
-    $editPostId = $_POST['edit_post'];
-    $editPostTitle = $_POST['editPostTitle'];
-    $editPostContent = $_POST['editPostContent'];
+    $editPostId = filter_var($_POST['edit_post'], FILTER_VALIDATE_INT);
+    $editPostTitle = trim($_POST['editPostTitle']);
+    $editPostContent = trim($_POST['editPostContent']);
 
-    $updateSql = "UPDATE posts SET title = '$editPostTitle', content = '$editPostContent' WHERE id = '$editPostId' AND user_id = '$user_id'";
-    $updateResult = $connection->query($updateSql);
+    if ($editPostId && !empty($editPostTitle) && !empty($editPostContent)) {
+        $stmt = $connection->prepare("UPDATE posts SET title = ?, content = ? WHERE id = ? AND user_id = ?");
+        $stmt->bind_param("ssii", $editPostTitle, $editPostContent, $editPostId, $user_id);
 
-    if ($updateResult) {
-        header("Location: posts.php");
-        exit();
+        if ($stmt->execute()) {
+            header("Location: posts.php");
+            exit();
+        } else {
+            $errors[] = "Error editing post: " . $stmt->error;
+        }
+        $stmt->close();
     } else {
-        $errors[] = "Error editing post: " . $connection->error;
+        $errors[] = "Invalid input provided.";
     }
 }
 
 // Delete Post
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_post'])) {
-    $deletePostId = $_POST['delete_post'];
+    $deletePostId = filter_var($_POST['delete_post'], FILTER_VALIDATE_INT);
 
-    $deleteSql = "DELETE FROM posts WHERE id = '$deletePostId' AND user_id = '$user_id'";
-    $deleteResult = $connection->query($deleteSql);
+    if ($deletePostId) {
+        $stmt = $connection->prepare("DELETE FROM posts WHERE id = ? AND user_id = ?");
+        $stmt->bind_param("ii", $deletePostId, $user_id);
 
-    if ($deleteResult) {
-        header("Location: posts.php");
-        exit();
+        if ($stmt->execute()) {
+            header("Location: posts.php");
+            exit();
+        } else {
+            $errors[] = "Error deleting post: " . $stmt->error;
+        }
+        $stmt->close();
     } else {
-        $errors[] = "Error deleting post: " . $connection->error;
+        $errors[] = "Invalid post ID.";
     }
 }
 
 // Add Post
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['post'])) {
-    $postTitle = $_POST['postTitle'];
-    $postContent = $_POST['postContent'];
+    $postTitle = trim($_POST['postTitle']);
+    $postContent = trim($_POST['postContent']);
 
-    $insertSql = "INSERT INTO posts (user_id, title, content) VALUES ('$user_id', '$postTitle', '$postContent')";
-    $insertResult = $connection->query($insertSql);
+    if (!empty($postTitle) && !empty($postContent)) {
+        $stmt = $connection->prepare("INSERT INTO posts (user_id, title, content) VALUES (?, ?, ?)");
+        $stmt->bind_param("iss", $user_id, $postTitle, $postContent);
 
-    if ($insertResult) {
-        header("Location: posts.php");
-        exit();
+        if ($stmt->execute()) {
+            header("Location: posts.php");
+            exit();
+        } else {
+            $errors[] = "Error adding post: " . $stmt->error;
+        }
+        $stmt->close();
     } else {
-        $errors[] = "Error adding post: " . $connection->error;
+        $errors[] = "Title and content cannot be empty.";
     }
 }
+
 ?>
 
 <!DOCTYPE html>

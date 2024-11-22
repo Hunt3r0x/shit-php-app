@@ -1,6 +1,16 @@
 <?php
 session_start();
+require_once('db/db_connection.php');
 
+// Secure session settings
+session_set_cookie_params([
+    'secure' => true,
+    'httponly' => true,
+    'samesite' => 'Strict',
+]);
+session_regenerate_id();
+
+// Redirect if the user is not authenticated
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit();
